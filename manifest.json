@@ -1,0 +1,10 @@
+{
+    "manifest_version": 3,
+    "name": "CURL Logger Extension",
+    "version": "1.0",
+    "description": "Monitors HTTP GET requests to a specified URL and saves them as CURL commands.",
+    "permissions": ["webRequest", "storage", "downloads"],
+    "background": {"service_worker": "background.js"},
+    "host_permissions": ["<all_urls>"],
+    "action": {"default_popup": "popup.html"}
+}

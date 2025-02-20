@@ -10,4 +10,4 @@ https://examplepage.com/ will match https://examplepage.com/subpage?params
 
 Turn on capturing to start capturing. The extension saves the latest request every 10 minutes to request_saver/latest_request.txt under Downloads folder.
 
-To manually capture the latest request, turn off and then turn on capturing.
+Restart capturing timer by turning off and on capturing.

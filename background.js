@@ -61,7 +61,7 @@ function saveCurlToFile() {
     const curldata = 'data:text/plain;charset=utf-8,' + encodeURIComponent(curlCommand);
 
     // Search for existing download file and remove it
-    chrome.downloads.search({ filename: fileName, state: 'complete' }, function (items) {
+    chrome.downloads.search({ filenameRegex: fileName, state: 'complete' }, function (items) {
         items.forEach((item) => {
             console.log("Found existing file, erasing and removing:", item);
             chrome.downloads.removeFile(item.id, () => {

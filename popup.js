@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const captureSwitch = document.getElementById('captureSwitch');
     const urlList = document.getElementById('urlList');
     const saveButton = document.getElementById('saveButton');
+    const saveNowButton = document.getElementById('saveNowButton');
+
 
     // Initialize the switch state and URLs based on stored values
     chrome.storage.sync.get(['capturing', 'urls'], (data) => {
@@ -28,4 +30,10 @@ document.addEventListener('DOMContentLoaded', function () {
             chrome.runtime.sendMessage({ updateUrls: urls });
         });
     });
+
+    saveNowButton.addEventListener('click', function () {
+        // Send a message to the background script to save immediately
+        chrome.runtime.sendMessage({ saveNow: true });
+    });
+
 });

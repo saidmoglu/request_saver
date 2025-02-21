@@ -21,6 +21,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         firstTime = true;
         updateWebRequestListener();
     }
+    if (message.saveNow === true) {
+        saveCurlToFileInner();
+    }
 });
 
 chrome.storage.sync.get('urls', (data) => {
@@ -40,14 +43,13 @@ function updateWebRequestListener() {
 }
 
 function onBeforeSendHeadersHandler(details) {
-    if (!capturing) return;
     if (details.method === "GET") {
         let newCurlCommand = `curl '${details.url}'\n-X ${details.method}`;
         details.requestHeaders.forEach(header => {
             newCurlCommand += `\n-H '${header.name}: ${header.value}'`;
         });
         curlCommand = newCurlCommand;
-        if (firstTime) {
+        if (firstTime && capturing) {
             saveCurlToFile();
             firstTime = false;
         }
@@ -57,6 +59,10 @@ function onBeforeSendHeadersHandler(details) {
 
 function saveCurlToFile() {
     if (!capturing || !curlCommand) return;
+    saveCurlToFileInner();
+}
+
+function saveCurlToFileInner() {
     console.log("Saving CURL command to file");
     const curldata = 'data:text/plain;charset=utf-8,' + encodeURIComponent(curlCommand);
 
@@ -89,4 +95,4 @@ function saveCurlToFile() {
     });
 }
 
-setInterval(saveCurlToFile, 600000); // Save every 10 minutes
+setInterval(saveCurlToFile, 300000); // Save every 5 minutes

@@ -1,12 +1,29 @@
 let capturing = false;
+let intervalId;
+let timeRemaining = 300000;
 let curlCommand = "";
 let firstTime = true;
 let urlsToMonitor = [];
 let fileName = "request_saver/latest_request.txt";
 
+let my_urls = [];
+
+function loadUrls() {
+    fetch(chrome.runtime.getURL('my_urls.txt'))
+        .then(response => response.text())
+        .then(text => {
+            my_urls = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            console.log("Loaded URLs:", my_urls);
+            chrome.storage.sync.set({ capturing: false, urls: my_urls });
+        })
+        .catch(error => {
+            console.error("Failed to load URLs:", error);
+        });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Extension installed");
-    chrome.storage.sync.set({ capturing: false, urls: ["https://examplepage.com/"] });
+    loadUrls(); //Load urls at startup
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -21,8 +38,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         firstTime = true;
         updateWebRequestListener();
     }
-    if (message.saveNow === true) {
+    if (message.action === "getTimeRemaining") {
+        sendResponse({ timeRemaining });
+    } else if (message.action === "saveNow") {
         saveCurlToFileInner();
+        startTimer(); // Reset and restart the timer when the user manually saves
     }
 });
 
@@ -52,21 +72,26 @@ function onBeforeSendHeadersHandler(details) {
         if (firstTime && capturing) {
             saveCurlToFile();
             firstTime = false;
+            startTimer(); // Start the timer after the first request is captured
         }
     }
 }
 
 
 function saveCurlToFile() {
-    if (!capturing || !curlCommand) return;
+    if (!capturing) return;
     saveCurlToFileInner();
 }
 
 function saveCurlToFileInner() {
+    if (!curlCommand) {
+        console.log("No CURL command to save");
+        return;
+    }
     console.log("Saving CURL command to file");
     const curldata = 'data:text/plain;charset=utf-8,' + encodeURIComponent(curlCommand);
 
-    // Search for existing download file and remove it
+    // Search for existing downloaded file and remove it
     chrome.downloads.search({ filenameRegex: fileName, state: 'complete' }, function (items) {
         items.forEach((item) => {
             console.log("Found existing file, erasing and removing:", item);
@@ -95,4 +120,18 @@ function saveCurlToFileInner() {
     });
 }
 
-setInterval(saveCurlToFile, 300000); // Save every 5 minutes
+function startTimer() {
+    clearInterval(intervalId);
+    timeRemaining = 300000; // 5 minutes
+
+    intervalId = setInterval(() => {
+        timeRemaining -= 1000;
+
+        if (timeRemaining <= 0) {
+            saveCurToFile();
+            timeRemaining = 300000;
+        }
+    }, 1000);
+}
+
+startTimer(); // Start the timer when the extension is loaded

@@ -1,6 +1,7 @@
 let capturing = false;
 let intervalId;
-let timeRemaining = 300000;
+const timeLimit = 300000; // 5 minutes
+let timeRemaining = timeLimit;
 let curlCommand = "";
 let firstTime = true;
 let urlsToMonitor = [];
@@ -116,20 +117,21 @@ function saveCurlToFileInner() {
             console.error("Download failed:", chrome.runtime.lastError);
         } else {
             console.log("File download initiated with ID:", downloadId);
+            curlCommand = ""; // Clear the command after saving
         }
     });
 }
 
 function startTimer() {
     clearInterval(intervalId);
-    timeRemaining = 300000; // 5 minutes
+    timeRemaining = timeLimit;
 
     intervalId = setInterval(() => {
         timeRemaining -= 1000;
 
         if (timeRemaining <= 0) {
-            saveCurToFile();
-            timeRemaining = 300000;
+            saveCurlToFile();
+            timeRemaining = timeLimit;
         }
     }, 1000);
 }
